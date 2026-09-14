@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>My Food｜Recipe & Dining</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--text:#292722;--muted:#817a70;--accent:#a15c37;--line:#e2ddd4}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+button,input,textarea{font:inherit} button{cursor:pointer;border:0}
+.app{min-height:100vh}.top{height:86px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.brand{font-size:30px;font-weight:700}.sub{font-size:13px;color:var(--muted);margin-left:12px}
+.primary{background:var(--accent);color:white;border-radius:12px;padding:13px 20px;font-weight:700}
+.layout{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 86px)}
+.side{background:#fff;border-right:1px solid var(--line);padding:24px 18px}.search{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;margin-bottom:20px;background:#faf9f6}
+.nav button{display:block;width:100%;text-align:left;padding:13px 14px;border-radius:10px;background:transparent;color:var(--text);margin:3px 0}.nav button.active,.nav button:hover{background:#f1ece5;color:var(--accent)}
+main{padding:30px;max-width:1400px;width:100%;margin:auto}.page-title{font-size:26px;margin:0 0 22px}.grid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:22px}
+.recipe-card{background:#fff;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:0 2px 10px #00000008}.photo{height:220px;background:#e9e4da;display:flex;align-items:center;justify-content:center;color:#928b80}.photo img{width:100%;height:100%;object-fit:cover}.card-body{padding:16px}.card-name{font-size:20px;font-weight:700}.date{color:var(--muted);font-size:14px;margin-top:6px}
+.detail{display:grid;grid-template-columns:1.05fr 1fr;gap:28px}.hero{width:100%;max-height:520px;object-fit:cover;border-radius:20px;background:#e9e4da}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}.panel h3{margin:0 0 14px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:25px}.item{display:flex;justify-content:space-between;border-bottom:1px solid #eee9e1;padding:9px 0}.link{color:var(--accent);text-decoration:none}.record{border-top:1px solid var(--line);padding:18px 0}.stars{letter-spacing:2px}.best{color:#a15c37;font-weight:700}.back{background:transparent;color:var(--muted);padding:0;margin-bottom:18px}
+.form{max-width:1000px}.field{margin-bottom:18px}.field label{display:block;font-weight:700;margin-bottom:8px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:13px}.field textarea{min-height:90px;resize:vertical}.rows{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}.row{display:grid;grid-template-columns:1fr 180px 42px;gap:8px;margin-bottom:8px}.row input{padding:10px;border:1px solid var(--line);border-radius:9px}.remove{background:#f0ece6;border-radius:9px}.addrow{background:transparent;color:var(--accent);padding:7px 0}.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:25px}
+.hidden{display:none!important}.empty{text-align:center;padding:70px;color:var(--muted)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.side{display:none}.grid{grid-template-columns:repeat(2,minmax(180px,1fr))}.detail{grid-template-columns:1fr}.top{padding:0 16px}.sub{display:none}}
+.dishrow{grid-template-columns:1.2fr .5fr 1.5fr auto}.dishrow input{min-width:0}@media(max-width:900px){.dishrow{grid-template-columns:1fr 90px 1fr auto}}@media(max-width:700px){.layout{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line)}.grid{grid-template-columns:1fr 1fr}.detail{grid-template-columns:1fr}.dishrow{grid-template-columns:1fr 80px}.dishrow input:nth-child(3){grid-column:1/-1}}\n</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div><span class="brand">🍳 My Recipe</span><span class="sub">作って、記録して、自分の定番へ</span></div><div style="display:flex;gap:10px;align-items:center"><button class="addrow" style="padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#faf9f6" onclick="showDiningAdd()">🍽️ 外食を追加</button><button class="primary" onclick="showAdd()">＋ 料理を追加</button></div></header>
+<div class="layout">
+<aside class="side">
+<input id="search" class="search" placeholder="🔎 料理・店名・料理名を検索" oninput="renderHome()">
+<nav class="nav">
+<button class="active" onclick="filterBy('all',this)">すべて</button>
+<button onclick="filterBy('fav',this)">★ お気に入り</button>
+<button onclick="filterBy('best',this)">🏆 マイベスト</button><button onclick="showDiningHome(this)">🍽️ 外食</button>
+<button onclick="filterBy('和食',this)">和食</button><button onclick="filterBy('洋食',this)">洋食</button><button onclick="filterBy('中華',this)">中華</button><button onclick="filterBy('その他',this)">その他</button>
+</nav></aside>
+<main>
+<section id="home"></section><section id="detail" class="hidden"></section><section id="add" class="hidden"></section><section id="diningHome" class="hidden"></section><section id="diningDetail" class="hidden"></section>
+</main>
+</div></div>
+<script>
+const KEY="myrecipe_v1";
+let data=JSON.parse(localStorage.getItem(KEY)||"null");
+if(!data){data=[{id:1,name:"夏すき焼き",category:"その他",url:"https://cgc-kitchen365.jp/search/detail/627a01893ae0082873304fbb",ingredients:[["牛肩ロース","400g"],["トマト","○個"],["オクラ","○本"],["かぼちゃ","○g"],["みょうが","○個"],["大根おろし","○g"],["すだち","○個"]],seasonings:[["醤油","○○"],["みりん","○○"],["砂糖","○○"],["酒","○○"]],records:[{date:"2026/9/12",photo:"",changes:"トマト多め・すだち追加",memo:"さっぱりして美味しい",rating:4,best:false}]}];save()}
+let dining=JSON.parse(localStorage.getItem("myrecipe_dining_v1")||"[]");
+let diningMode=false;
+function saveDining(){
+  try { localStorage.setItem("myrecipe_dining_v1",JSON.stringify(dining)); return true; }
+  catch(e){ return false; }
+}
+function showOnly(id){
+ ["home","detail","add","diningHome","diningDetail"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+}
+function diningStars(n){n=Number(n)||0;return "★".repeat(n)+"☆".repeat(5-n)}
+function escAttr(v){return esc(v||"")}
+function diningHero(d){
+ return (d.photos&&d.photos.length)?d.photos[0]:"";
+}
+function showDiningHome(el){
+ diningMode=true; currentFilter="dining";
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+ if(el) el.classList.add("active");
+ showOnly("diningHome");
+ let q=(document.getElementById("search").value||"").trim().toLowerCase();
+ let arr=dining.filter(d=>{
+   let hay=[d.shop,d.branch,d.address,d.url,d.priceRange,d.comment,d.nextTime,...(d.dishes||[]).flatMap(x=>[x.name,x.comment,String(x.rating||"")])].join(" ").toLowerCase();
+   return !q||hay.includes(q);
+ });
+ document.getElementById("diningHome").innerHTML=`<h1 class="page-title">🍽️ 外食記録</h1>
+ <div style="color:var(--muted);margin:-12px 0 18px">${q?`「${esc(q)}」を検索中`:"店・料理・コメントを検索できます"}</div>
+ <div class="grid">${arr.map(d=>`<article class="recipe-card" onclick="showDiningDetail(${d.id})">
+ <div class="photo">${diningHero(d)?`<img src="${diningHero(d)}">`:"写真"}</div>
+ <div class="card-body"><div class="card-name">${esc(d.shop)}${d.branch?`｜${esc(d.branch)}`:""}</div>
+ <div class="date">${esc(d.date||"")}　${dishesSummary(d)}</div>
+ <div class="stars" style="margin-top:7px">${diningStars(d.rating)}</div></div></article>`).join("")||'<div class="empty">外食記録がありません</div>'}</div>`;
+}
+function dishesSummary(d){return (d.dishes||[]).map(x=>x.name).filter(Boolean).join("、")}
+function showDiningDetail(id){
+ let d=dining.find(x=>x.id===id); if(!d)return;
+ showOnly("diningDetail");
+ let photos=(d.photos||[]).map(p=>`<img src="${p}" style="width:180px;height:140px;object-fit:cover;border-radius:12px;margin:0 8px 8px 0">`).join("");
+ document.getElementById("diningDetail").innerHTML=`<button class="back" onclick="showDiningHome()">← 外食一覧</button>
+ <div class="detail"><div>
+ <div class="photo hero">${diningHero(d)?`<img src="${diningHero(d)}">`:"写真を追加"}</div>
+ ${photos?`<div style="margin-top:14px">${photos}</div>`:""}
+ <div class="panel" style="margin-top:18px"><h3>店舗Webサイト</h3>${d.url?`<a class="link" href="${escAttr(d.url)}" target="_blank">🔗 Webサイトを見る</a>`:"未登録"}</div>
+ </div>
+ <div>
+ <div class="panel"><h2 style="margin-top:0">🏪 ${esc(d.shop)}${d.branch?`｜${esc(d.branch)}`:""}</h2>
+ <div class="item"><span>📍 場所</span><span>${esc(d.address||"未登録")}</span></div>
+ <div class="item"><span>⭐ 店の評価</span><span class="stars">${diningStars(d.rating)}</span></div>
+ <div class="item"><span>💰 価格帯</span><span>${esc(d.priceRange||"未登録")}</span></div>
+ <div style="margin-top:12px">${esc(d.comment||"")}</div>
+ <div style="margin-top:12px"><b>また行きたい：</b>${esc(d.wantAgain||"")}</div>
+ </div>
+ <div class="panel"><h3>🍽️ 訪問・料理記録</h3>
+ <div class="item"><span>📅 日時</span><span>${esc(d.date||"")}</span></div>
+ <div class="item"><span>👥 誰と</span><span>${esc(d.withWho||"")}</span></div>
+ <div class="item"><span>💴 会計</span><span>${esc(d.bill||"")}</span></div>
+ <div style="margin:14px 0"><b>料理</b></div>
+ ${(d.dishes||[]).map((x,i)=>`<div class="record"><b>${esc(x.name||"料理")}</b><div class="stars">${diningStars(x.rating)}</div><div style="margin-top:6px;color:var(--muted)">${esc(x.comment||"")}</div></div>`).join("")||"料理の記録なし"}
+ ${d.nextTime?`<div style="margin-top:14px"><b>次回食べたいもの：</b>${esc(d.nextTime)}</div>`:""}
+ <div class="actions"><button class="addrow" onclick="showDiningEdit(${d.id})">✏️ 外食記録を編集</button><button class="addrow" onclick="deleteDining(${d.id})">🗑 削除</button></div>
+ </div></div></div>`;
+}
+function diningFormHTML(d){
+ let dishes=(d?.dishes||[{name:"",rating:5,comment:""}]);
+ return `<button class="back" onclick="showDiningHome()">← 外食一覧</button><div class="form">
+ <h1 class="page-title">${d?"外食記録を編集":"新しい外食記録"}</h1>
+ <div class="field"><label>店名</label><input id="dshop" value="${escAttr(d?.shop||"")}"></div>
+ <div class="field"><label>支店名</label><input id="dbranch" value="${escAttr(d?.branch||"")}"></div>
+ <div class="field"><label>住所・場所</label><input id="daddress" value="${escAttr(d?.address||"")}"></div>
+ <div class="field"><label>店舗Webサイト</label><input id="durl" type="url" placeholder="https://" value="${escAttr(d?.url||"")}"></div>
+ <div class="field"><label>日時</label><input id="ddate" type="datetime-local" value="${escAttr(d?.dateInput||"")}"></div>
+ <div class="field"><label>誰と</label><input id="dwith" value="${escAttr(d?.withWho||"")}"></div>
+ <div class="field"><label>店の評価</label><input id="drating" type="number" min="1" max="5" value="${d?.rating||5}"></div>
+ <div class="field"><label>価格帯</label><input id="dprice" placeholder="例：1人5,000円程度" value="${escAttr(d?.priceRange||"")}"></div>
+ <div class="field"><label>店のコメント</label><textarea id="dcomment">${escText(d?.comment||"")}</textarea></div>
+ <div class="field"><label>また行きたい</label><input id="dwant" placeholder="◎ / ○ / △ / ×" value="${escAttr(d?.wantAgain||"")}"></div>
+ <div class="field"><label>会計</label><input id="dbill" value="${escAttr(d?.bill||"")}"></div>
+ <div class="field"><label>次回食べたいもの</label><input id="dnext" value="${escAttr(d?.nextTime||"")}"></div>
+ <div class="field"><label>食べた料理</label><div id="ddishes">${dishes.map(x=>`<div class="row dishrow"><input value="${escAttr(x.name||"")}" placeholder="料理名"><input type="number" min="1" max="5" value="${x.rating||5}" placeholder="評価"><input value="${escAttr(x.comment||"")}" placeholder="料理の感想"><button class="remove" onclick="this.parentElement.remove()">×</button></div>`).join("")}
+ <button class="addrow" onclick="addDiningDish()">＋ 料理を追加</button></div></div>
+ <div class="field"><label>写真（複数枚可）</label><input id="dphotos" type="file" accept="image/*" multiple onchange="previewDiningPhotos(this)"><div id="dpreview" style="margin-top:10px">${(d?.photos||[]).map(p=>`<img src="${p}" style="width:120px;height:90px;object-fit:cover;border-radius:10px;margin:0 6px 6px 0">`).join("")}</div></div>
+ <div class="actions"><button class="primary" onclick="${d?`saveDiningEdit(${d.id})`:"saveDiningNew()"}">保存</button></div></div>`;
+}
+function addDiningDish(){
+ let box=document.getElementById("ddishes"), b=box.querySelector(".addrow"), div=document.createElement("div");
+ div.className="row dishrow"; div.innerHTML=`<input placeholder="料理名"><input type="number" min="1" max="5" value="5"><input placeholder="料理の感想"><button class="remove" onclick="this.parentElement.remove()">×</button>`;
+ box.insertBefore(div,b);
+}
+let pendingDiningPhotos=[];
+function previewDiningPhotos(input){
+ pendingDiningPhotos=[];
+ let files=[...input.files]; if(!files.length)return;
+ let done=0,html="";
+ files.forEach(f=>{let rd=new FileReader();rd.onload=e=>{let im=new Image();im.onload=()=>{let max=700,scale=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.width*scale));c.height=Math.max(1,Math.round(im.height*scale));c.getContext("2d").drawImage(im,0,0,c.width,c.height);let jpg=c.toDataURL("image/jpeg",0.55);pendingDiningPhotos.push(jpg);done++;html+=`<img src="${jpg}" style="width:120px;height:90px;object-fit:cover;border-radius:10px;margin:0 6px 6px 0">`;document.getElementById("dpreview").innerHTML=html;};im.src=e.target.result};rd.readAsDataURL(f)});
+}
+function collectDiningDishes(){
+ return [...document.querySelectorAll("#ddishes .dishrow")].map(x=>({name:x.children[0].value,rating:Math.max(1,Math.min(5,+x.children[1].value||5)),comment:x.children[2].value})).filter(x=>x.name);
+}
+function diningValues(oldPhotos=[]){
+ let di=document.getElementById("ddate").value, display=di?new Date(di).toLocaleString("ja-JP"):"";
+ return {shop:document.getElementById("dshop").value||"無題の店",branch:document.getElementById("dbranch").value,address:document.getElementById("daddress").value,url:document.getElementById("durl").value,date:display,dateInput:di,withWho:document.getElementById("dwith").value,rating:Math.max(1,Math.min(5,+document.getElementById("drating").value||5)),priceRange:document.getElementById("dprice").value,comment:document.getElementById("dcomment").value,wantAgain:document.getElementById("dwant").value,bill:document.getElementById("dbill").value,nextTime:document.getElementById("dnext").value,dishes:collectDiningDishes(),photos:pendingDiningPhotos.length?pendingDiningPhotos:oldPhotos};
+}
+function showDiningAdd(){diningMode=true;pendingDiningPhotos=[];showOnly("add");document.getElementById("add").innerHTML=diningFormHTML(null)}
+function saveDiningNew(){let d={id:Date.now(),...diningValues()};dining.unshift(d);if(saveDining()){pendingDiningPhotos=[];showDiningDetail(d.id)}else{dining.shift();alert("保存できませんでした。写真の容量が大きい可能性があります。写真を少なくするか、サイズを小さくしてください。");}}
+function showDiningEdit(id){let d=dining.find(x=>x.id===id);if(!d)return;pendingDiningPhotos=[];showOnly("add");document.getElementById("add").innerHTML=diningFormHTML(d)}
+function saveDiningEdit(id){let d=dining.find(x=>x.id===id);if(!d)return;let old={...d};Object.assign(d,diningValues(d.photos||[]));if(saveDining()){pendingDiningPhotos=[];showDiningDetail(id)}else{Object.assign(d,old);alert("保存できませんでした。写真の容量が大きい可能性があります。写真を少なくするか、サイズを小さくしてください。");}}
+function deleteDining(id){let d=dining.find(x=>x.id===id);if(!d)return;if(confirm(`「${d.shop}」の記録を削除しますか？`)){dining=dining.filter(x=>x.id!==id);saveDining();showDiningHome();}}
+
+let currentFilter="all";
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function imgSrc(r){return r.photo||""}
+function renderHome(){
+ showOnly("home");
+ diningMode=false;
+ let q=(document.getElementById("search").value||"").trim().toLowerCase();
+ if(diningMode && currentFilter==="dining"){showDiningHome();return;}
+ let arr=data.filter(r=>{
+   let hay=[
+     r.name,r.category,
+     ...(r.ingredients||[]).flat(),
+     ...(r.seasonings||[]).flat(),
+     ...(r.records||[]).flatMap(x=>[x.changes||"",x.memo||""])
+   ].join(" ").toLowerCase();
+   let matches=!q||hay.includes(q);
+   let filterOK=currentFilter==="all" ||
+     (currentFilter==="fav" && !!r.favorite) ||
+     (currentFilter==="best" && r.records.some(x=>x.best)) ||
+     r.category===currentFilter;
+   return filterOK && matches;
+ });
+ let title=currentFilter==="fav"?"⭐ お気に入り":currentFilter==="best"?"🏆 マイベスト":currentFilter==="all"?"最近作った料理":currentFilter;
+ document.getElementById("home").innerHTML=`<h1 class="page-title">${title}</h1><div style="color:var(--muted);margin:-12px 0 18px">${q?`「${esc(q)}」を検索中`:""}</div><div class="grid">${arr.map(r=>`<article class="recipe-card" onclick="showDetail(${r.id})"><div class="photo">${(r.records.find(x=>x.best)?.photo || r.records[r.records.length-1]?.photo || r.records[0]?.photo)?`<img src="${r.records.find(x=>x.best)?.photo || r.records[r.records.length-1]?.photo || r.records[0]?.photo}">`:"写真"}</div><div class="card-body"><div class="card-name">${r.name} ${r.favorite?"⭐":""} ${r.records.some(x=>x.best)?"🏆":""}</div><div class="date">${r.records[0]?.date||""}</div></div></article>`).join("")||'<div class="empty">料理がありません</div>'}</div>`;
+}
+function filterBy(f,el){diningMode=false;currentFilter=f;document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));el.classList.add("active");renderHome()}
+function toggleFavorite(id){
+ let r=data.find(x=>x.id===id); if(!r)return;
+ r.favorite=!r.favorite;
+ save();
+ showDetail(id);
+}
+function showDetail(id){diningMode=false;showOnly("detail");
+ let r=data.find(x=>x.id===id); document.getElementById("home").classList.add("hidden");document.getElementById("add").classList.add("hidden");let sec=document.getElementById("detail");sec.classList.remove("hidden");
+ let best=r.records.find(x=>x.best);
+ sec.innerHTML=`<button class="back" onclick="renderHome()">← 戻る</button><div class="detail">
+ <div><div class="photo hero">${(best?.photo || r.records[r.records.length-1]?.photo || r.records[0]?.photo)?`<img src="${best?.photo || r.records[r.records.length-1]?.photo || r.records[0]?.photo}">`:"写真を追加"}</div>
+ <div class="panel" style="margin-top:18px"><h3>参考レシピ</h3><a class="link" href="${r.url}" target="_blank">🔗 レシピを見る</a></div></div>
+ <div><div class="panel"><h2 style="margin-top:0">${r.name} ${r.favorite?"⭐":""} ${best?"🏆 MY BEST":""}</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"><button class="addrow" style="border:1px solid var(--line);padding:9px 12px;border-radius:9px;background:#faf9f6" onclick="toggleFavorite(${r.id})">${r.favorite?"⭐ お気に入りを外す":"☆ お気に入りに追加"}</button><button class="addrow" style="border:1px solid var(--line);padding:9px 12px;border-radius:9px;background:#faf9f6" onclick="showEdit(${r.id})">✏️ 材料・調味料を編集</button><button class="addrow" style="border:1px solid #e8c9c0;padding:9px 12px;border-radius:9px;background:#fff5f2;color:#a33" onclick="deleteRecipe(${r.id})">🗑 この料理を削除</button></div><div class="cols"><div><h3>材料</h3>${r.ingredients.map(x=>`<div class="item"><span>${x[0]}</span><span>${x[1]}</span></div>`).join("")}</div><div><h3>調味料</h3>${r.seasonings.map(x=>`<div class="item"><span>${x[0]}</span><span>${x[1]}</span></div>`).join("")}</div></div></div>
+ <div class="panel"><h3>作った記録</h3>${best?`<div style="color:var(--muted);font-size:14px;margin:-4px 0 12px">🏆 MY BESTは、この料理で一番気に入った「作り方の記録」です。</div>`:""}${r.records.map((x,i)=>`<div class="record"><b>${i+1}回目｜${x.date}</b> ${x.best?'<span class="best">🏆 MY BEST</span>':''}
+${x.photo?`<div style="margin:12px 0"><img src="${x.photo}" style="width:240px;height:160px;object-fit:cover;border-radius:12px"></div>`:""}
+<div class="stars">${"★".repeat(x.rating||0)}${"☆".repeat(5-(x.rating||0))}</div><div style="margin-top:8px">${x.changes||"アレンジなし"}</div><div style="color:var(--muted);margin-top:5px">${x.memo||""}</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px"><button class="addrow" onclick="editRecord(${r.id},${i})">✏️ この回を編集</button>${!x.best?`<button class="addrow" onclick="promote(${r.id},${i})">🏆 この回をマイベストに昇格</button>`:""}</div></div>`).join("")}<button class="primary" onclick="showAddRecord(${r.id})">＋ 次回の記録を追加</button></div></div></div>`;
+}
+
+function showEdit(id){diningMode=false;
+ let r=data.find(x=>x.id===id); if(!r)return;
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("detail").classList.add("hidden");
+ let s=document.getElementById("add"); s.classList.remove("hidden");
+ s.innerHTML=editFormHTML(r);
+}
+function editFormHTML(r){
+ return `<button class="back" onclick="showDetail(${r.id})">← 戻る</button>
+ <div class="form"><h1 class="page-title">料理を編集</h1>
+ <div class="field"><label>料理名</label><input id="name" value="${esc(r.name)}"></div>
+ <div class="field"><label>参考レシピURL</label><input id="url" value="${esc(r.url||"")}"></div>
+ <div class="field"><label>カテゴリ</label><input id="cat" value="${esc(r.category||"その他")}"></div>
+ ${editRowsHTML("材料","ing",r.ingredients)}
+ ${editRowsHTML("調味料","sea",r.seasonings)}
+ <div class="actions"><button class="primary" onclick="saveEdit(${r.id})">保存</button></div></div>`;
+}
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function editRowsHTML(title,id,items){
+ let rows=(items||[]).map(x=>`<div class="row"><input value="${esc(x[0])}" placeholder="${title}"><input value="${esc(x[1])}" placeholder="分量"><button class="remove" onclick="this.parentElement.remove()">×</button></div>`).join("");
+ if(!rows) rows=`<div class="row"><input placeholder="${title}"><input placeholder="分量"><button class="remove" onclick="this.parentElement.remove()">×</button></div>`;
+ return `<div class="field"><label>${title}</label><div class="rows" id="${id}">${rows}<button class="addrow" onclick="addRow('${id}','${title}')">＋ ${title}を追加</button></div></div>`;
+}
+function saveEdit(id){
+ let r=data.find(x=>x.id===id); if(!r)return;
+ r.name=document.getElementById("name").value||"無題の料理";
+ r.url=document.getElementById("url").value;
+ r.category=document.getElementById("cat").value||"その他";
+ r.ingredients=collect("ing"); r.seasonings=collect("sea");
+ save(); showDetail(id);
+}
+function deleteRecipe(id){
+ let r=data.find(x=>x.id===id); if(!r)return;
+ if(!confirm(`「${r.name}」を削除しますか？\n作った記録もすべて削除されます。`)) return;
+ data=data.filter(x=>x.id!==id); save(); renderHome();
+}
+function showAdd(){diningMode=false;showOnly("add");let s=document.getElementById("add");s.innerHTML=formHTML()}
+function formHTML(){return `<button class="back" onclick="renderHome()">← 戻る</button><div class="form"><h1 class="page-title">新しい料理</h1>
+<div class="field"><label>料理名</label><input id="name" value=""></div><div class="field"><label>参考レシピURL</label><input id="url" value="https://"></div>
+<div class="field"><label>カテゴリ</label><input id="cat" value="その他"></div>${rowsHTML("材料","ing")} ${rowsHTML("調味料","sea")}
+<div class="field"><label>完成写真</label><input id="photo" type="file" accept="image/*" onchange="previewPhoto(this)"><div id="preview" style="margin-top:10px"></div></div>
+<div class="field"><label>今回のアレンジ</label><textarea id="changes"></textarea></div><div class="field"><label>感想</label><textarea id="memo"></textarea></div>
+<div class="field"><label>評価</label><input id="rating" type="number" min="1" max="5" value="5"></div><div class="actions"><button class="primary" onclick="saveNew()">保存</button></div></div>`}
+function rowsHTML(title,id){return `<div class="field"><label>${title}</label><div class="rows" id="${id}"><div class="row"><input placeholder="${title}"><input placeholder="分量"><button class="remove" onclick="this.parentElement.remove()">×</button></div><button class="addrow" onclick="addRow('${id}','${title}')">＋ ${title}を追加</button></div></div>`}
+function addRow(id,title){let box=document.getElementById(id), b=box.querySelector(".addrow"), div=document.createElement("div");div.className="row";div.innerHTML=`<input placeholder="${title}"><input placeholder="分量"><button class="remove" onclick="this.parentElement.remove()">×</button>`;box.insertBefore(div,b)}
+let pendingPhoto="";
+function previewPhoto(input){let f=input.files[0];if(!f)return;let rd=new FileReader();rd.onload=e=>{let im=new Image();im.onload=()=>{let max=1000,scale=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext("2d").drawImage(im,0,0,c.width,c.height);pendingPhoto=c.toDataURL("image/jpeg",0.82);document.getElementById("preview").innerHTML=`<img src="${pendingPhoto}" style="width:220px;height:160px;object-fit:cover;border-radius:12px">`};im.src=e.target.result};rd.readAsDataURL(f)}
+function collect(id){return [...document.querySelectorAll("#"+id+" .row")].map(x=>[x.children[0].value,x.children[1].value]).filter(x=>x[0])}
+function saveNew(){let r={id:Date.now(),name:document.getElementById("name").value||"無題の料理",category:document.getElementById("cat").value||"その他",url:document.getElementById("url").value,ingredients:collect("ing"),seasonings:collect("sea"),records:[{date:new Date().toLocaleDateString("ja-JP"),photo:pendingPhoto,changes:document.getElementById("changes").value,memo:document.getElementById("memo").value,rating:Math.max(1,Math.min(5,+document.getElementById("rating").value||5)),best:false}]};data.unshift(r);try{save();pendingPhoto="";showDetail(r.id)}catch(e){data.shift();alert("保存できませんでした。写真の容量が大きい可能性があります。写真を外してもう一度保存してください。");console.error(e)}}
+function showAddRecord(id){
+ let r=data.find(x=>x.id===id); if(!r)return;
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("detail").classList.add("hidden");
+ let s=document.getElementById("add"); s.classList.remove("hidden");
+ pendingPhoto="";
+ s.innerHTML=`<button class="back" onclick="showDetail(${id})">← 戻る</button>
+ <div class="form"><h1 class="page-title">${r.name}｜次回の記録</h1>
+ <div class="field"><label>完成写真</label><input id="recordPhoto" type="file" accept="image/*" onchange="previewRecordPhoto(this)"><div id="recordPreview" style="margin-top:10px"></div></div>
+ <div class="field"><label>今回のアレンジ・変更</label><textarea id="changes"></textarea></div>
+ <div class="field"><label>感想</label><textarea id="memo"></textarea></div>
+ <div class="field"><label>評価</label><input id="rating" type="number" min="1" max="5" value="5"></div>
+ <div class="actions"><button class="primary" onclick="saveNewRecord(${id})">保存</button></div></div>`;
+}
+function previewRecordPhoto(input){
+ let f=input.files[0]; if(!f)return;
+ let rd=new FileReader();
+ rd.onload=e=>{
+  let im=new Image();
+  im.onload=()=>{
+   let max=1000,scale=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");
+   c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);
+   c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+   pendingPhoto=c.toDataURL("image/jpeg",0.82);
+   document.getElementById("recordPreview").innerHTML=`<img src="${pendingPhoto}" style="width:220px;height:160px;object-fit:cover;border-radius:12px">`;
+  };
+  im.src=e.target.result;
+ };
+ rd.readAsDataURL(f);
+}
+function saveNewRecord(id){
+ let r=data.find(x=>x.id===id); if(!r)return;
+ let rating=Math.max(1,Math.min(5,+document.getElementById("rating").value||5));
+ r.records.push({date:new Date().toLocaleDateString("ja-JP"),photo:pendingPhoto,changes:document.getElementById("changes").value,memo:document.getElementById("memo").value,rating,best:false});
+ try{save();pendingPhoto="";showDetail(id)}catch(e){r.records.pop();alert("保存できませんでした。写真の容量が大きい可能性があります。");}
+}
+function editRecord(id,i){
+ let r=data.find(x=>x.id===id), x=r?.records[i]; if(!x)return;
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("detail").classList.add("hidden");
+ let s=document.getElementById("add"); s.classList.remove("hidden");
+ pendingPhoto=x.photo||"";
+ s.innerHTML=`<button class="back" onclick="showDetail(${id})">← 戻る</button>
+ <div class="form"><h1 class="page-title">${r.name}｜${i+1}回目を編集</h1>
+ <div class="field"><label>完成写真</label><input id="recordPhoto" type="file" accept="image/*" onchange="previewRecordPhoto(this)"><div id="recordPreview" style="margin-top:10px">${x.photo?`<img src="${x.photo}" style="width:220px;height:160px;object-fit:cover;border-radius:12px">`:"写真なし"}</div></div>
+ <div class="field"><label>今回のアレンジ・変更</label><textarea id="changes">${escText(x.changes||"")}</textarea></div>
+ <div class="field"><label>感想</label><textarea id="memo">${escText(x.memo||"")}</textarea></div>
+ <div class="field"><label>評価</label><input id="rating" type="number" min="1" max="5" value="${x.rating||5}"></div>
+ <div class="actions"><button class="primary" onclick="saveRecordEdit(${id},${i})">保存</button></div></div>`;
+}
+function escText(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function saveRecordEdit(id,i){
+ let r=data.find(x=>x.id===id), x=r?.records[i]; if(!x)return;
+ x.photo=pendingPhoto;
+ x.changes=document.getElementById("changes").value;
+ x.memo=document.getElementById("memo").value;
+ x.rating=Math.max(1,Math.min(5,+document.getElementById("rating").value||5));
+ try{save();pendingPhoto="";showDetail(id)}catch(e){alert("保存できませんでした。写真の容量が大きい可能性があります。");}
+}
+function promote(id,i){let r=data.find(x=>x.id===id);r.records.forEach(x=>x.best=false);r.records[i].best=true;save();showDetail(id)}
+renderHome();
+</script>
+</body></html>
